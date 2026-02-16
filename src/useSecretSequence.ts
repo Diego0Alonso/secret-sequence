@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react"
+import { detectSwipe, type TouchConfig, type TouchPoint } from "./touchGestures"
 
 /**
  * Direcciones soportadas para secuencias tipo Konami
@@ -39,8 +40,9 @@ export interface UseSecretSequenceOptions {
     sequences: SecretSequenceConfig[]
     timeout?: number // Tiempo máximo entre pasos antes de resetear
     enabled?: boolean // Permite activar/desactivar el hook
-    enableTouch?: boolean // (Reservado para soporte táctil)
+    enableTouch?: boolean // Activa detección de gestos táctiles (swipes)
     ignoreInputs?: boolean // Ignorar eventos cuando el usuario está escribiendo
+    touchOptions?: TouchConfig // Configuración avanzada de sensibilidad táctil
     onProgress?: (id: string | undefined, progress: number) => void
 }
 
@@ -96,6 +98,7 @@ export function useSecretSequence({
     enabled = true,
     enableTouch = true,
     ignoreInputs = true,
+    touchOptions,
     onProgress,
 }: UseSecretSequenceOptions) {
 
@@ -114,14 +117,63 @@ export function useSecretSequence({
             )
     )
 
+    // Ref síncrona para rastrear el progreso
+    // (necesaria para que preventDefault funcione de forma inmediata)
+    const progressRef = useRef<Record<string, number>>(progressMap)
+
     /**
      * Resetea el progreso de todas las secuencias
      */
     const resetAll = useCallback(() => {
-        setProgressMap(prev =>
-            Object.fromEntries(Object.keys(prev).map(k => [k, 0]))
-        )
+        setProgressMap(prev => {
+            const reset = Object.fromEntries(Object.keys(prev).map(k => [k, 0]))
+            progressRef.current = reset
+            return reset
+        })
     }, [])
+
+    /**
+     * Avanza el progreso de las secuencias según una función de matching.
+     * Retorna true si algún paso coincidió.
+     */
+    const advanceProgress = useCallback(
+        (isMatch: (step: SequenceStep) => boolean): boolean => {
+            let matched = false
+            const prev = progressRef.current
+            const next = { ...prev }
+
+            sequences.forEach((seq, index) => {
+                const id = seq.id ?? String(index)
+                const currentProgress = prev[id] ?? 0
+                const expectedStep = seq.sequence[currentProgress]
+
+                if (isMatch(expectedStep)) {
+                    matched = true
+                    const newProgress = currentProgress + 1
+                    next[id] = newProgress
+
+                    onProgress?.(id, newProgress)
+
+                    if (newProgress === seq.sequence.length) {
+                        seq.onSuccess()
+                        next[id] = 0
+                    }
+                } else {
+                    next[id] = 0
+                }
+            })
+
+            progressRef.current = next
+            setProgressMap(next)
+
+            // Reinicia progreso si se supera el tiempo máximo entre pasos
+            if (timeoutRef.current) clearTimeout(timeoutRef.current)
+            timeoutRef.current = setTimeout(resetAll, timeout)
+
+            return matched
+        },
+        [sequences, timeout, onProgress, resetAll]
+    )
 
     /**
      * Procesa cada evento de teclado
@@ -134,41 +186,16 @@ export function useSecretSequence({
             // Evita interferir con inputs si está habilitado
             if (ignoreInputs && isTypingTarget(event.target)) return
 
-            setProgressMap(prev => {
-                const next = { ...prev }
+            // Verifica las coincidencias de forma síncrona
+            // para poder prevenir el comportamiento por defecto del navegador
+            // (ej: Ctrl+K abre búsqueda, Ctrl+U muestra código fuente)
+            const matched = advanceProgress(step => matchStep(step, event))
 
-                sequences.forEach((seq, index) => {
-                    const id = seq.id ?? String(index)
-                    const currentProgress = prev[id]
-                    const expectedStep = seq.sequence[currentProgress]
-
-                    // Si el paso coincide con lo esperado
-                    if (matchStep(expectedStep, event)) {
-                        const newProgress = currentProgress + 1
-                        next[id] = newProgress
-
-                        // Notifica progreso si el usuario lo necesita
-                        onProgress?.(id, newProgress)
-
-                        // Si completó la secuencia
-                        if (newProgress === seq.sequence.length) {
-                            seq.onSuccess()
-                            next[id] = 0
-                        }
-                    } else {
-                        // Si falla, reinicia esa secuencia
-                        next[id] = 0
-                    }
-                })
-
-                return next
-            })
-
-            // Reinicia progreso si se supera el tiempo máximo entre pasos
-            if (timeoutRef.current) clearTimeout(timeoutRef.current)
-            timeoutRef.current = setTimeout(resetAll, timeout)
+            if (matched) {
+                event.preventDefault()
+            }
         },
-        [enabled, sequences, timeout, ignoreInputs, onProgress, resetAll]
+        [enabled, ignoreInputs, advanceProgress]
     )
 
     /**
@@ -180,6 +207,56 @@ export function useSecretSequence({
         window.addEventListener("keydown", processKey)
         return () => window.removeEventListener("keydown", processKey)
     }, [processKey])
+
+    /**
+     * Listeners de gestos táctiles (touchstart / touchend)
+     * Detecta swipes y los mapea a direcciones.
+     */
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        if (!enabled || !enableTouch) return
+
+        let touchStart: TouchPoint | null = null
+
+        const handleTouchStart = (e: TouchEvent) => {
+            const touch = e.touches[0]
+            if (!touch) return
+
+            touchStart = {
+                x: touch.clientX,
+                y: touch.clientY,
+                time: Date.now(),
+            }
+        }
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            if (!touchStart) return
+
+            const touch = e.changedTouches[0]
+            if (!touch) return
+
+            const touchEnd: TouchPoint = {
+                x: touch.clientX,
+                y: touch.clientY,
+                time: Date.now(),
+            }
+
+            const direction = detectSwipe(touchStart, touchEnd, touchOptions)
+            touchStart = null
+
+            if (direction) {
+                advanceProgress(step => typeof step === "string" && step === direction)
+            }
+        }
+
+        window.addEventListener("touchstart", handleTouchStart, { passive: true })
+        window.addEventListener("touchend", handleTouchEnd, { passive: true })
+
+        return () => {
+            window.removeEventListener("touchstart", handleTouchStart)
+            window.removeEventListener("touchend", handleTouchEnd)
+        }
+    }, [enabled, enableTouch, touchOptions, advanceProgress])
 
     return {
         progressMap, // Progreso individual por secuencia

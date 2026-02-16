@@ -118,6 +118,30 @@ useSecretSequence({
 
 ---
 
+### Soporte de Gestos Táctiles
+
+Los swipes en dispositivos táctiles se mapean automáticamente a pasos direccionales:
+
+```tsx
+useSecretSequence({
+  sequences: [
+    {
+      id: "konami",
+      sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
+      onSuccess: () => alert("🎉 ¡Código Konami activado!"),
+    },
+  ],
+  enableTouch: true, // habilitado por defecto
+  touchOptions: {
+    minDistance: 30,  // distancia mínima del swipe en px
+    maxTime: 300,     // duración máxima del swipe en ms
+    threshold: 1.5,   // ratio para rechazar swipes diagonales
+  },
+})
+```
+
+---
+
 ### Múltiples Secuencias
 
 ```tsx
@@ -156,7 +180,9 @@ const { progressMap } = useSecretSequence({
 | `sequences`     | `SecretSequenceConfig[]`                              | —           | Array de configuraciones de secuencias a detectar simultáneamente                                      |
 | `timeout`       | `number`                                              | `2000`      | Milisegundos de inactividad antes de reiniciar todo el progreso                                        |
 | `enabled`       | `boolean`                                             | `true`      | Activa o desactiva toda la detección                                                                   |
+| `enableTouch`   | `boolean`                                             | `true`      | Activa detección de gestos táctiles (swipes mapeados a direcciones)                                    |
 | `ignoreInputs`  | `boolean`                                             | `true`      | Ignora eventos de teclado cuando el foco está en `<input>`, `<textarea>` o elementos `contentEditable` |
+| `touchOptions`  | `TouchConfig`                                         | —           | Configuración avanzada de sensibilidad táctil (ver abajo)                                              |
 | `onProgress`    | `(id: string \| undefined, progress: number) => void` | —           | Callback que se ejecuta en cada paso correcto                                                          |
 
 ---
@@ -194,6 +220,16 @@ Un `SequenceStep` puede ser:
 
 ---
 
+### `TouchConfig`
+
+| Propiedad     | Tipo     | Por defecto | Descripción                                                                   |
+| ------------- | -------- | ----------- | ----------------------------------------------------------------------------- |
+| `minDistance`  | `number` | `30`        | Distancia mínima del swipe en píxeles                                         |
+| `maxTime`      | `number` | `300`       | Duración máxima del swipe en milisegundos                                     |
+| `threshold`    | `number` | `1.5`       | Ratio mínimo entre eje dominante y secundario para rechazar swipes diagonales |
+
+---
+
 ### Valor de Retorno
 
 | Propiedad     | Tipo                     | Descripción                                          |
@@ -215,6 +251,7 @@ Protege el acceso a `window` durante el renderizado en servidor y solo registra 
 
 * ✅ Detección multi-secuencia
 * ✅ Soporte direccional + combinaciones de teclas
+* ✅ Soporte de gestos táctiles (detección de swipes)
 * ✅ Reset basado en timeout
 * ✅ Seguimiento de progreso independiente
 * ✅ Headless (trae tu propia UI)
@@ -228,7 +265,7 @@ Protege el acceso a `window` durante el renderizado en servidor y solo registra 
 ## Hoja de Ruta
 
 * [ ] Coincidencia parcial inteligente (algoritmo KMP)
-* [ ] Soporte avanzado de gestos táctiles
+* [x] Soporte avanzado de gestos táctiles
 * [ ] Targets de eventos personalizados
 * [ ] Modo de depuración con devtools
 * [ ] Paquete complementario con UI opcional

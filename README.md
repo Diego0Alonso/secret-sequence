@@ -118,6 +118,30 @@ useSecretSequence({
 
 ---
 
+### Touch Gesture Support
+
+Swipe gestures on touch devices are automatically mapped to directional steps:
+
+```tsx
+useSecretSequence({
+  sequences: [
+    {
+      id: "konami",
+      sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
+      onSuccess: () => alert("🎉 Konami Code activated!"),
+    },
+  ],
+  enableTouch: true, // enabled by default
+  touchOptions: {
+    minDistance: 30,  // minimum swipe distance in px
+    maxTime: 300,     // max swipe duration in ms
+    threshold: 1.5,   // ratio to reject diagonal swipes
+  },
+})
+```
+
+---
+
 ### Multiple Sequences
 
 ```tsx
@@ -156,7 +180,9 @@ const { progressMap } = useSecretSequence({
 | `sequences`    | `SecretSequenceConfig[]`                              | —       | Array of sequence configurations to detect simultaneously                                 |
 | `timeout`      | `number`                                              | `2000`  | Milliseconds of inactivity before resetting all progress                                  |
 | `enabled`      | `boolean`                                             | `true`  | Enable or disable all detection                                                           |
+| `enableTouch`  | `boolean`                                             | `true`  | Enable touch gesture detection (swipes mapped to directions)                              |
 | `ignoreInputs` | `boolean`                                             | `true`  | Ignore key events when focus is on `<input>`, `<textarea>`, or `contentEditable` elements |
+| `touchOptions` | `TouchConfig`                                         | —       | Advanced touch sensitivity configuration (see below)                                      |
 | `onProgress`   | `(id: string \| undefined, progress: number) => void` | —       | Callback fired on each correct step                                                       |
 
 ---
@@ -194,6 +220,16 @@ A `SequenceStep` can be either:
 
 ---
 
+### `TouchConfig`
+
+| Property      | Type     | Default | Description                                                          |
+| ------------- | -------- | ------- | -------------------------------------------------------------------- |
+| `minDistance`  | `number` | `30`    | Minimum swipe distance in pixels                                     |
+| `maxTime`      | `number` | `300`   | Maximum swipe duration in milliseconds                               |
+| `threshold`    | `number` | `1.5`   | Minimum ratio between dominant and secondary axis to reject diagonals |
+
+---
+
 ### Return Value
 
 | Property      | Type                     | Description                                       |
@@ -215,6 +251,7 @@ It guards against accessing `window` during server rendering and only attaches l
 
 * ✅ Multi-sequence detection
 * ✅ Directional + key combo support
+* ✅ Touch gesture support (swipe detection)
 * ✅ Timeout-based reset
 * ✅ Independent progress tracking
 * ✅ Headless (bring your own UI)
@@ -228,7 +265,7 @@ It guards against accessing `window` during server rendering and only attaches l
 ## Roadmap
 
 * [ ] Smart partial matching (KMP algorithm)
-* [ ] Advanced touch gesture support
+* [x] Advanced touch gesture support
 * [ ] Custom event targets
 * [ ] Devtools debug mode
 * [ ] Optional UI companion package

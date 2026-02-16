@@ -1,6 +1,6 @@
 {
   "name": "secret-sequence-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Headless stratagem-style input engine for React — detect directional sequences, key combos, and multi-pattern inputs",
   "keywords": [
     "react",
@@ -38,7 +38,6 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "clean": "npx rimraf dist",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
