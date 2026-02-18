@@ -9,7 +9,7 @@
 ![GitHub Forks](https://img.shields.io/github/forks/Diego0Alonso/secret-sequence-core)
 ![GitHub issues](https://img.shields.io/github/issues/Diego0Alonso/secret-sequence-core)
 ![npm version](https://img.shields.io/npm/v/secret-sequence-core)
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/secret-sequence-core)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/Diego0Alonso)
 
 ![React](https://img.shields.io/badge/React-%3E%3D18-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)
