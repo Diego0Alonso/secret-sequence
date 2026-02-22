@@ -1,0 +1,46 @@
+{
+  "name": "secret-sequence-core",
+  "version": "2.0.0",
+  "description": "Headless stratagem-style input engine — detect directional sequences, key combos, and multi-pattern inputs",
+  "keywords": [
+    "keyboard",
+    "stratagem",
+    "konami",
+    "sequence",
+    "shortcut",
+    "input-engine",
+    "helldivers",
+    "headless",
+    "key-combo",
+    "easter-egg",
+    "typescript"
+  ],
+  "author": "diego0alonso",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diego0alonso/secret-sequence.git"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

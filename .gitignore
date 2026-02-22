@@ -5,8 +5,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Lock files
-package-lock.json
+# Pack artifacts
+*.tgz
 
 # Logs
 npm-debug.log*

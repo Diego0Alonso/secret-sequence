@@ -1,264 +1,120 @@
 <div align="center">
 
-# Secret Sequence Core
+# Secret Sequence
 
 [![en](https://img.shields.io/badge/lang-en-red.svg)](./README.md)
 [![es](https://img.shields.io/badge/lang-es-yellow.svg)](./README_ES.md)
 
-![GitHub stars](https://img.shields.io/github/stars/Diego0Alonso/secret-sequence-core)
-![GitHub Forks](https://img.shields.io/github/forks/Diego0Alonso/secret-sequence-core)
-![GitHub issues](https://img.shields.io/github/issues/Diego0Alonso/secret-sequence-core)
-![npm version](https://img.shields.io/npm/v/secret-sequence-core)
+![GitHub stars](https://img.shields.io/github/stars/Diego0Alonso/secret-sequence)
+![GitHub forks](https://img.shields.io/github/forks/Diego0Alonso/secret-sequence)
+![GitHub issues](https://img.shields.io/github/issues/Diego0Alonso/secret-sequence)
 [![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/Diego0Alonso)
 
-![React](https://img.shields.io/badge/React-%3E%3D18-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)
 
-A headless stratagem-style input engine for React.
+A modular, framework-agnostic input engine ecosystem for the web.
 
-Inspired by the input systems seen in games like **Helldivers 2**, this hook allows you to detect directional sequences and key combinations with timeout handling, progress tracking, and multi-sequence support.
+A stratagem-style input pattern engine inspired by games like **Helldivers 2**, bringing directional sequences, key combinations, and touch gesture detection to modern web applications.
 
 </div>
 
 ---
 
-## Why?
+## Monorepo Structure
 
-Perfect for:
+This repository is organized as a monorepo containing the following packages:
 
-- 🎮 Easter eggs & game-like web experiences
-- 🔐 Hidden admin panels
-- 🛠 Developer shortcuts
-- 🧩 Interactive UI systems
-- ⚡ Stratagem-style input patterns
+| Package | Version | Description |
+|----------|----------|-------------|
+| `secret-sequence-core` | [![npm](https://img.shields.io/npm/v/secret-sequence-core)](https://www.npmjs.com/package/secret-sequence-core) | Framework-agnostic input engine |
+| `secret-sequence-react` | — | React hook wrapper |
+| `secret-sequence-angular` *(planned)* | — | Angular directive wrapper |
+| `secret-sequence-ui` *(future)* | — | Optional UI components |
 
 ---
 
-## Installation
+## Why?
 
-### npm
-```bash
-npm install secret-sequence-core
-```
+Secret Sequence is perfect for:
 
-### pnpm
+- 🎮 Easter eggs & game-like web experiences  
+- 🔐 Hidden admin panels  
+- 🛠 Developer shortcuts  
+- 🧩 Interactive UI systems  
+- ⚡ Stratagem-style input mechanics  
 
-```bash
-pnpm add secret-sequence-core
-```
+---
 
-### yarn
+## Philosophy
 
-```bash
-yarn add secret-sequence-core
-```
+Secret Sequence follows a layered architecture:
 
-### bun
+- **Core** → Pure logic, zero framework dependencies  
+- **Wrappers** → Framework-specific integrations (React, Angular, Vue)  
+- **UI (optional)** → Visual components built on top  
 
-```bash
-bun add secret-sequence-core
-```
+This separation ensures long-term scalability, portability, and framework independence.
+
+---
+
+## Ecosystem
+
+The project is designed as a growing ecosystem:
+
+- Core engine (headless)
+- Framework wrappers
+- Optional UI components
+- Devtools (planned)
 
 ---
 
 ## Quick Start
 
-### Stratagem-Style Input
+### Install the core
 
-```tsx
-import { useSecretSequence } from "secret-sequence-core"
+```bash
+npm install secret-sequence-core
+````
 
-function App() {
-  const { progressMap } = useSecretSequence({
-    sequences: [
-      {
-        id: "orbitalStrike",
-        sequence: ["right", "right", "up"],
-        onSuccess: () => deployStrike(),
-      },
-    ],
-    timeout: 2000,
-  })
+### Basic Usage (Vanilla TypeScript)
 
-  return <p>Input: {progressMap["orbitalStrike"]} / 3</p>
-}
-```
+```ts
+import { SecretSequenceEngine } from "secret-sequence-core"
 
----
-
-### Konami Code
-
-```tsx
-useSecretSequence({
+const engine = new SecretSequenceEngine({
   sequences: [
     {
       id: "konami",
       sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
-      onSuccess: () => alert("🎉 Konami Code activated!"),
+      onSuccess: () => console.log("🎉 Konami Code activated!"),
     },
   ],
   timeout: 3000,
 })
+
+engine.start()
+
+// When done:
+// engine.destroy()
 ```
 
----
-
-### Key Combo Shortcut
-
-```tsx
-useSecretSequence({
-  sequences: [
-    {
-      sequence: [{ key: "k", ctrl: true }],
-      onSuccess: () => console.log("Shortcut triggered"),
-    },
-  ],
-})
-```
-
----
-
-### Touch Gesture Support
-
-Swipe gestures on touch devices are automatically mapped to directional steps:
-
-```tsx
-useSecretSequence({
-  sequences: [
-    {
-      id: "konami",
-      sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
-      onSuccess: () => alert("🎉 Konami Code activated!"),
-    },
-  ],
-  enableTouch: true, // enabled by default
-  touchOptions: {
-    minDistance: 30,  // minimum swipe distance in px
-    maxTime: 300,     // max swipe duration in ms
-    threshold: 1.5,   // ratio to reject diagonal swipes
-  },
-})
-```
-
----
-
-### Multiple Sequences
-
-```tsx
-const { progressMap } = useSecretSequence({
-  sequences: [
-    {
-      id: "konami",
-      sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
-      onSuccess: () => console.log("Konami!"),
-    },
-    {
-      id: "unlock",
-      sequence: [
-        { key: "k", ctrl: true },
-        { key: "u", ctrl: true },
-      ],
-      onSuccess: () => console.log("Ctrl+K → Ctrl+U unlocked!"),
-    },
-  ],
-  onProgress: (id, progress) => {
-    console.log(`Sequence "${id}" progress: ${progress}`)
-  },
-})
-```
-
----
-
-## API
-
-### `useSecretSequence(options)`
-
-#### Options
-
-| Option         | Type                                                  | Default | Description                                                                               |
-| -------------- | ----------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `sequences`    | `SecretSequenceConfig[]`                              | —       | Array of sequence configurations to detect simultaneously                                 |
-| `timeout`      | `number`                                              | `2000`  | Milliseconds of inactivity before resetting all progress                                  |
-| `enabled`      | `boolean`                                             | `true`  | Enable or disable all detection                                                           |
-| `enableTouch`  | `boolean`                                             | `true`  | Enable touch gesture detection (swipes mapped to directions)                              |
-| `ignoreInputs` | `boolean`                                             | `true`  | Ignore key events when focus is on `<input>`, `<textarea>`, or `contentEditable` elements |
-| `touchOptions` | `TouchConfig`                                         | —       | Advanced touch sensitivity configuration (see below)                                      |
-| `onProgress`   | `(id: string \| undefined, progress: number) => void` | —       | Callback fired on each correct step                                                       |
-
----
-
-### `SecretSequenceConfig`
-
-| Property    | Type                  | Description                                                  |
-| ----------- | --------------------- | ------------------------------------------------------------ |
-| `id`        | `string` *(optional)* | Unique identifier for the sequence (defaults to array index) |
-| `sequence`  | `SequenceStep[]`      | Steps to detect                                              |
-| `onSuccess` | `() => void`          | Callback fired when the full sequence is completed           |
-
----
-
-### Types
-
-```ts
-type Direction = "up" | "down" | "left" | "right"
-
-type KeyCombo = {
-  key: string
-  ctrl?: boolean
-  shift?: boolean
-  alt?: boolean
-  meta?: boolean
-}
-
-type SequenceStep = Direction | KeyCombo
-```
-
-A `SequenceStep` can be either:
-
-* A `Direction` string (mapped to arrow keys)
-* A `KeyCombo` object for any key with optional modifier keys
-
----
-
-### `TouchConfig`
-
-| Property      | Type     | Default | Description                                                          |
-| ------------- | -------- | ------- | -------------------------------------------------------------------- |
-| `minDistance`  | `number` | `30`    | Minimum swipe distance in pixels                                     |
-| `maxTime`      | `number` | `300`   | Maximum swipe duration in milliseconds                               |
-| `threshold`    | `number` | `1.5`   | Minimum ratio between dominant and secondary axis to reject diagonals |
-
----
-
-### Return Value
-
-| Property      | Type                     | Description                                       |
-| ------------- | ------------------------ | ------------------------------------------------- |
-| `progressMap` | `Record<string, number>` | Current progress for each sequence, keyed by `id` |
-| `reset`       | `() => void`             | Manually reset all sequences                      |
-
----
-
-## SSR Compatibility
-
-This hook is safe to use in SSR environments like Next.js and Remix.
-
-It guards against accessing `window` during server rendering and only attaches listeners on the client.
+> For React projects, `secret-sequence-react` (coming soon) will provide a `useSecretSequence` hook built on top of the core engine.
 
 ---
 
 ## Features
 
 * ✅ Multi-sequence detection
-* ✅ Directional + key combo support
-* ✅ Touch gesture support (swipe detection)
+* ✅ Directional + key combination support
+* ✅ Touch gesture detection (swipes)
 * ✅ Timeout-based reset
 * ✅ Independent progress tracking
 * ✅ Headless (bring your own UI)
 * ✅ SSR-safe
 * ✅ Fully typed with TypeScript
 * ✅ Tree-shakeable
-* ✅ Zero dependencies beyond React
+* ✅ Zero runtime dependencies
+* ✅ Framework-agnostic
 
 ---
 
@@ -268,21 +124,31 @@ It guards against accessing `window` during server rendering and only attaches l
 * [x] Advanced touch gesture support
 * [ ] Custom event targets
 * [ ] Devtools debug mode
-* [ ] Optional UI companion package
+* [ ] React wrapper package
 
 ---
 
 ## Inspiration
 
-> Inspired by the stratagem input system in **Helldivers 2** — where players input directional sequences under pressure to call in tactical support.
+Inspired by the stratagem input system in **Helldivers 2**, where players input directional sequences under pressure to call tactical support.
 
-This hook brings that same pattern to the web: fast, sequential, multi-pattern input detection.
+Secret Sequence brings that same fast, sequential, multi-pattern input detection to the web.
+
+---
+
+## Keywords
+
+* input sequence engine
+* konami code detection
+* directional input handler
+* keyboard sequence detection
+* touch gesture sequence
 
 ---
 
 ## Contributing
 
-Contributions, issues and feature requests are welcome.
+Contributions, issues, and feature requests are welcome.
 
 Feel free to open an issue or submit a pull request.
 
@@ -290,4 +156,4 @@ Feel free to open an issue or submit a pull request.
 
 ## License
 
-MIT © Diego0Alonso
+MIT © Diego Alonso
