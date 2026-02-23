@@ -5,6 +5,8 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "npm run build --workspace=packages/core"
+        "build": "npm run build:core && npm run build:react",
+        "build:core": "npm run build --workspace=packages/core",
+        "build:react": "npm run build --workspace=packages/react"
     }
 }

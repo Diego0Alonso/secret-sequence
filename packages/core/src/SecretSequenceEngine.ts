@@ -240,6 +240,7 @@ export class SecretSequenceEngine {
     private advanceProgress(isMatch: (step: SequenceStep) => boolean): boolean {
         let matched = false
         const next = { ...this.progressMap }
+        const notifications: Array<{ id: string; progress: number }> = []
 
         this.sequences.forEach((seq, index) => {
             const id = seq.id ?? String(index)
@@ -251,7 +252,7 @@ export class SecretSequenceEngine {
                 const newProgress = currentProgress + 1
                 next[id] = newProgress
 
-                this.onProgress?.(id, newProgress)
+                notifications.push({ id, progress: newProgress })
 
                 if (newProgress === seq.sequence.length) {
                     seq.onSuccess()
@@ -263,6 +264,10 @@ export class SecretSequenceEngine {
         })
 
         this.progressMap = next
+
+        for (const { id, progress } of notifications) {
+            this.onProgress?.(id, progress)
+        }
 
         // Reinicia progreso si se supera el tiempo máximo entre pasos
         if (this.timeoutId) clearTimeout(this.timeoutId)
