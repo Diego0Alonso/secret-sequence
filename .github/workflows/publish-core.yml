@@ -1,9 +1,9 @@
-name: Publish Package
+name: Publish Core
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'core-v*'
 
 jobs:
   publish:
