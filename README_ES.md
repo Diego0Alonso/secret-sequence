@@ -27,7 +27,7 @@ Este repositorio está organizado como un monorepo que contiene los siguientes p
 | Paquete | Versión | Descripción |
 |----------|----------|-------------|
 | `secret-sequence-core` | [![npm](https://img.shields.io/npm/v/secret-sequence-core)](https://www.npmjs.com/package/secret-sequence-core) | Motor de input agnóstico de framework |
-| `secret-sequence-react` | — | Wrapper de React hook |
+| `secret-sequence-react` | [![npm](https://img.shields.io/npm/v/secret-sequence-react)](https://www.npmjs.com/package/secret-sequence-react) | Wrapper de React hook |
 | `secret-sequence-angular` *(planificado)* | — | Wrapper de directiva Angular |
 | `secret-sequence-ui` *(futuro)* | — | Componentes UI opcionales |
 
@@ -98,7 +98,32 @@ engine.start()
 // engine.destroy()
 ```
 
-> Para proyectos en React, `secret-sequence-react` (próximamente) proveerá un hook `useSecretSequence` construido sobre el motor core.
+### Uso con React
+
+```bash
+npm install secret-sequence-core secret-sequence-react
+```
+
+```tsx
+import { useSecretSequence } from "secret-sequence-react"
+
+function App() {
+  const { progress } = useSecretSequence({
+    sequences: [
+      {
+        id: "konami",
+        sequence: ["up", "up", "down", "down", "left", "right", "left", "right"],
+        onSuccess: () => console.log("🎉 ¡Código Konami activado!"),
+      },
+    ],
+    enableTouch: true,
+  })
+
+  return <pre>{JSON.stringify(progress, null, 2)}</pre>
+}
+```
+
+> Consultá la documentación completa del paquete [secret-sequence-react](./packages/react/README_ES.md).
 
 ---
 
@@ -124,7 +149,7 @@ engine.start()
 * [x] Soporte avanzado de gestos táctiles
 * [ ] Targets de eventos personalizados
 * [ ] Modo de depuración con devtools
-* [ ] Paquete wrapper para React
+* [x] Paquete wrapper para React (`secret-sequence-react`)
 
 ---
 
