@@ -42,7 +42,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm test"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
@@ -54,7 +54,7 @@
     "@types/react": "^19.0.0",
     "jsdom": "^28.1.0",
     "react": "^19.0.0",
-    "secret-sequence-core": "^2.0.0",
+    "secret-sequence-core": "workspace:^",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.18"

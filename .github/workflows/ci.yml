@@ -1,0 +1,34 @@
+name: CI
+
+# Validation gate for every push to main and every pull request.
+# This workflow has NO secrets and NO id-token: it only installs,
+# builds and runs the test suite. There is nothing here to steal.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from the "packageManager" field in package.json
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # tsup --dts type-checks both packages while emitting declarations
+      - run: pnpm run build
+
+      - run: pnpm test

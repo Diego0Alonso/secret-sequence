@@ -1,0 +1,48 @@
+name: Publish React
+
+# Triggered by pushing a tag like: react-v1.1.0
+# IMPORTANT: secret-sequence-react depends on secret-sequence-core.
+# If you are releasing both, publish core FIRST (push its tag and let it
+# finish) so the version this package depends on already exists on npm.
+on:
+  push:
+    tags:
+      - "react-v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    # OIDC Trusted Publishing: no NPM_TOKEN required.
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from the "packageManager" field in package.json
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      # pnpm publish delegates to the system `npm publish`, so OIDC Trusted
+      # Publishing needs a recent npm (>= 11.5.1) available on the runner.
+      - name: Ensure recent npm
+        run: npm install -g npm@latest
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run build
+
+      # Gate: the whole monorepo must be green before publishing
+      - run: pnpm test
+
+      # pnpm rewrites the workspace:^ dependency on core to a real semver
+      # range at publish time, so the published package.json is valid.
+      - name: Publish secret-sequence-react
+        run: pnpm --filter secret-sequence-react publish --no-git-checks --provenance --access public

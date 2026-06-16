@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+
+# pnpm 10+ blocks dependency build scripts by default for security.
+# esbuild (used by tsup) needs its install script to fetch its native binary.
+onlyBuiltDependencies:
+  - esbuild
