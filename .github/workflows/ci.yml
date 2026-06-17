@@ -30,7 +30,9 @@ jobs:
 
       - run: pnpm lint
 
-      # tsup --dts type-checks both packages while emitting declarations
       - run: pnpm run build
+
+      # explicit type-check (react resolves core's emitted types from dist)
+      - run: pnpm typecheck
 
       - run: pnpm test

@@ -44,6 +44,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepublishOnly": "pnpm run build && pnpm test"
   },
   "devDependencies": {
