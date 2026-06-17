@@ -25,6 +25,11 @@
     "url": "git+https://github.com/Diego0Alonso/secret-sequence.git",
     "directory": "packages/react"
   },
+  "homepage": "https://github.com/Diego0Alonso/secret-sequence/tree/main/packages/react#readme",
+  "bugs": "https://github.com/Diego0Alonso/secret-sequence/issues",
+  "engines": {
+    "node": ">=18"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -42,7 +47,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "pnpm run build && pnpm test"
   },
   "peerDependencies": {
     "react": ">=17.0.0",

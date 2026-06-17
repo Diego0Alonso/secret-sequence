@@ -22,6 +22,11 @@
     "url": "git+https://github.com/Diego0Alonso/secret-sequence.git",
     "directory": "packages/core"
   },
+  "homepage": "https://github.com/Diego0Alonso/secret-sequence/tree/main/packages/core#readme",
+  "bugs": "https://github.com/Diego0Alonso/secret-sequence/issues",
+  "engines": {
+    "node": ">=18"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -39,7 +44,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "test": "vitest run",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "pnpm run build && pnpm test"
   },
   "devDependencies": {
     "jsdom": "^28.1.0",
