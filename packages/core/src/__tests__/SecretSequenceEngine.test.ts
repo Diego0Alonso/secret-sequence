@@ -535,6 +535,40 @@ describe("SecretSequenceEngine", () => {
         })
     })
 
+    // --- Custom target ---
+
+    describe("custom target", () => {
+        it("escucha en el target provisto en vez de window", () => {
+            const onSuccess = vi.fn()
+            const el = document.createElement("div")
+            const engine = new SecretSequenceEngine({
+                sequences: [{ id: "t", sequence: ["up"] as Direction[], onSuccess }],
+                target: el,
+            })
+            engine.start()
+
+            el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }))
+
+            expect(onSuccess).toHaveBeenCalledOnce()
+            engine.destroy()
+        })
+
+        it("no responde a eventos de window cuando hay un target custom", () => {
+            const onSuccess = vi.fn()
+            const el = document.createElement("div")
+            const engine = new SecretSequenceEngine({
+                sequences: [{ id: "t", sequence: ["up"] as Direction[], onSuccess }],
+                target: el,
+            })
+            engine.start()
+
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }))
+
+            expect(onSuccess).not.toHaveBeenCalled()
+            engine.destroy()
+        })
+    })
+
     // --- Gestos táctiles + enabled ---
 
     describe("gestos táctiles", () => {

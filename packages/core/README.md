@@ -166,6 +166,7 @@ Creates a new engine instance.
 | `ignoreInputs` | `boolean`                                             | `true`  | Ignore key events when focus is on input-like elements |
 | `touchOptions` | `TouchConfig`                                         | —       | Advanced touch configuration                           |
 | `onProgress`   | `(id: string \| undefined, progress: number) => void` | —       | Fired on each successful step                          |
+| `target`       | `EventTarget`                                         | `window` | Element to attach listeners to (e.g. a scoped container) |
 
 ---
 

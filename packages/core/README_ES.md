@@ -166,6 +166,7 @@ Crea una nueva instancia del motor.
 | `ignoreInputs` | `boolean`                                             | `true`  | Ignorar eventos de tecla en elementos tipo input               |
 | `touchOptions` | `TouchConfig`                                         | —       | Configuración avanzada de touch                                |
 | `onProgress`   | `(id: string \| undefined, progress: number) => void` | —       | Se dispara en cada paso exitoso                                |
+| `target`       | `EventTarget`                                         | `window` | Elemento al que adjuntar los listeners (ej. un contenedor)     |
 
 ---
 

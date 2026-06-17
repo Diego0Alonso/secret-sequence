@@ -43,6 +43,8 @@ export interface SecretSequenceEngineOptions {
     ignoreInputs?: boolean
     touchOptions?: TouchConfig
     onProgress?: (id: string | undefined, progress: number) => void
+    /** Elemento al que adjuntar los listeners. Default: `window` */
+    target?: EventTarget
 }
 
 /**
@@ -117,10 +119,12 @@ export class SecretSequenceEngine {
     private ignoreInputs: boolean
     private touchOptions?: TouchConfig
     private onProgress?: (id: string | undefined, progress: number) => void
+    private target?: EventTarget
 
     private progressMap: Record<string, number>
     private timeoutId: ReturnType<typeof setTimeout> | null = null
     private touchStart: TouchPoint | null = null
+    private boundTarget: EventTarget | null = null
     private running = false
 
     // Bound handlers para poder removerlos correctamente
@@ -138,6 +142,7 @@ export class SecretSequenceEngine {
         this.ignoreInputs = options.ignoreInputs ?? true
         this.touchOptions = options.touchOptions
         this.onProgress = options.onProgress
+        this.target = options.target
 
         // Inicializar mapa de progreso
         this.progressMap = Object.fromEntries(
@@ -156,14 +161,17 @@ export class SecretSequenceEngine {
      */
     start(): void {
         if (this.running) return
-        if (typeof window === "undefined") return
+
+        const target = this.resolveTarget()
+        if (!target) return
 
         this.running = true
-        window.addEventListener("keydown", this.handleKeyDown)
+        this.boundTarget = target
+        target.addEventListener("keydown", this.handleKeyDown as EventListener)
 
         if (this.enableTouch) {
-            window.addEventListener("touchstart", this.handleTouchStart, { passive: true })
-            window.addEventListener("touchend", this.handleTouchEnd, { passive: true })
+            target.addEventListener("touchstart", this.handleTouchStart as EventListener, { passive: true })
+            target.addEventListener("touchend", this.handleTouchEnd as EventListener, { passive: true })
         }
     }
 
@@ -172,12 +180,16 @@ export class SecretSequenceEngine {
      */
     stop(): void {
         if (!this.running) return
-        if (typeof window === "undefined") return
 
         this.running = false
-        window.removeEventListener("keydown", this.handleKeyDown)
-        window.removeEventListener("touchstart", this.handleTouchStart)
-        window.removeEventListener("touchend", this.handleTouchEnd)
+
+        const target = this.boundTarget
+        if (target) {
+            target.removeEventListener("keydown", this.handleKeyDown as EventListener)
+            target.removeEventListener("touchstart", this.handleTouchStart as EventListener)
+            target.removeEventListener("touchend", this.handleTouchEnd as EventListener)
+            this.boundTarget = null
+        }
 
         if (this.timeoutId) {
             clearTimeout(this.timeoutId)
@@ -228,6 +240,7 @@ export class SecretSequenceEngine {
         if (options.ignoreInputs !== undefined) this.ignoreInputs = options.ignoreInputs
         if (options.touchOptions !== undefined) this.touchOptions = options.touchOptions
         if (options.onProgress !== undefined) this.onProgress = options.onProgress
+        if (options.target !== undefined) this.target = options.target
 
         if (wasRunning) this.start()
     }
@@ -243,6 +256,12 @@ export class SecretSequenceEngine {
                 )
             }
         })
+    }
+
+    private resolveTarget(): EventTarget | null {
+        if (this.target) return this.target
+        if (typeof window !== "undefined") return window
+        return null
     }
 
     private resetAll(): void {
