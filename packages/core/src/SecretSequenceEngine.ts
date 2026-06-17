@@ -129,6 +129,8 @@ export class SecretSequenceEngine {
     private handleTouchEnd: (e: TouchEvent) => void
 
     constructor(options: SecretSequenceEngineOptions) {
+        SecretSequenceEngine.validateSequences(options.sequences)
+
         this.sequences = options.sequences
         this.timeout = options.timeout ?? 2000
         this.enabled = options.enabled ?? true
@@ -214,6 +216,7 @@ export class SecretSequenceEngine {
         if (wasRunning) this.stop()
 
         if (options.sequences !== undefined) {
+            SecretSequenceEngine.validateSequences(options.sequences)
             this.sequences = options.sequences
             this.progressMap = Object.fromEntries(
                 this.sequences.map((s, i) => [s.id ?? String(i), 0])
@@ -231,6 +234,17 @@ export class SecretSequenceEngine {
 
     // --- Private methods ---
 
+    private static validateSequences(sequences: SecretSequenceConfig[]): void {
+        sequences.forEach((seq, index) => {
+            if (seq.sequence.length === 0) {
+                const id = seq.id ?? String(index)
+                throw new Error(
+                    `SecretSequence: sequence "${id}" must have at least one step`
+                )
+            }
+        })
+    }
+
     private resetAll(): void {
         this.progressMap = Object.fromEntries(
             Object.keys(this.progressMap).map(k => [k, 0])
@@ -246,6 +260,11 @@ export class SecretSequenceEngine {
             const id = seq.id ?? String(index)
             const currentProgress = this.progressMap[id] ?? 0
             const expectedStep = seq.sequence[currentProgress]
+
+            if (expectedStep === undefined) {
+                next[id] = 0
+                return
+            }
 
             if (isMatch(expectedStep)) {
                 matched = true

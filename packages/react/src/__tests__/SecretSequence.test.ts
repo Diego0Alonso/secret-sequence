@@ -80,7 +80,7 @@ describe("SecretSequence", () => {
         })
 
         const lastCall = renderProp.mock.calls[renderProp.mock.calls.length - 1]
-        expect(lastCall[0].progress).toEqual({ test: 1 })
+        expect(lastCall?.[0].progress).toEqual({ test: 1 })
     })
 
     it("onProgressChange se invoca cuando cambia el progreso", () => {

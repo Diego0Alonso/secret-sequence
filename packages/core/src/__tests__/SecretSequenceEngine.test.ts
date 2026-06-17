@@ -117,6 +117,15 @@ describe("SecretSequenceEngine", () => {
             expect(progress).toEqual({ "0": 0, "1": 0 })
             engine.destroy()
         })
+
+        it("lanza error si una secuencia está vacía", () => {
+            expect(
+                () =>
+                    new SecretSequenceEngine({
+                        sequences: [{ id: "empty", sequence: [], onSuccess: vi.fn() }],
+                    })
+            ).toThrow(/at least one step/)
+        })
     })
 
     // --- Secuencia de direcciones ---
