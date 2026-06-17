@@ -10,7 +10,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/Diego0Alonso/secret-sequence)
 [![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github)](https://github.com/sponsors/Diego0Alonso)
 
-![React](https://img.shields.io/badge/React-≥17-61DAFB?style=for-the-badge&logo=react)
+![React](https://img.shields.io/badge/React-≥18-61DAFB?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)
 
 > React hook & component for detecting directional sequences, key combos, and touch gestures — powered by [secret-sequence-core](../core/README.md).
