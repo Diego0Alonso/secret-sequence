@@ -1,5 +1,18 @@
 # secret-sequence-core
 
+## 2.1.0
+
+### Minor Changes
+
+- fb07f89: Add an optional `target` option to attach listeners to a specific
+  `EventTarget` (e.g. a scoped container or iframe) instead of `window`.
+  Defaults to `window`, so existing behaviour is unchanged.
+
+### Patch Changes
+
+- 311c0b2: The engine now throws a clear error if a sequence is configured with no
+  steps, instead of failing later at the first keypress.
+
 ## 2.0.2
 
 ### Patch Changes
