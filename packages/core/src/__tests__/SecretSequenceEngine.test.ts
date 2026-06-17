@@ -60,6 +60,31 @@ function createEngine(overrides: Partial<SecretSequenceEngineOptions> = {}) {
     return { engine, onSuccess }
 }
 
+/**
+ * Simula un swipe en el window despachando touchstart/touchend.
+ * Avanza el reloj entre ambos para que detectSwipe vea elapsed > 0
+ * dentro de maxTime (los timers están mockeados en beforeEach).
+ */
+function swipe(
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+    elapsedMs = 100
+) {
+    const startEvent = new Event("touchstart") as unknown as TouchEvent
+    Object.defineProperty(startEvent, "touches", {
+        value: [{ clientX: from.x, clientY: from.y }],
+    })
+    window.dispatchEvent(startEvent)
+
+    vi.advanceTimersByTime(elapsedMs)
+
+    const endEvent = new Event("touchend") as unknown as TouchEvent
+    Object.defineProperty(endEvent, "changedTouches", {
+        value: [{ clientX: to.x, clientY: to.y }],
+    })
+    window.dispatchEvent(endEvent)
+}
+
 // --- Tests ---
 
 describe("SecretSequenceEngine", () => {
@@ -497,6 +522,40 @@ describe("SecretSequenceEngine", () => {
 
             engine.reset()
             expect(engine.getProgressMap()).toEqual({ test: 0 })
+            engine.destroy()
+        })
+    })
+
+    // --- Gestos táctiles + enabled ---
+
+    describe("gestos táctiles", () => {
+        it("procesa un swipe cuando enabled es true (control)", () => {
+            const onSuccess = vi.fn()
+            const engine = new SecretSequenceEngine({
+                sequences: [{ id: "swipe", sequence: ["right"] as Direction[], onSuccess }],
+                enableTouch: true,
+            })
+            engine.start()
+
+            swipe({ x: 0, y: 0 }, { x: 100, y: 0 })
+
+            expect(onSuccess).toHaveBeenCalledOnce()
+            engine.destroy()
+        })
+
+        it("NO procesa gestos táctiles si enabled es false", () => {
+            const onSuccess = vi.fn()
+            const engine = new SecretSequenceEngine({
+                sequences: [{ id: "swipe", sequence: ["right"] as Direction[], onSuccess }],
+                enableTouch: true,
+                enabled: false,
+            })
+            engine.start()
+
+            swipe({ x: 0, y: 0 }, { x: 100, y: 0 })
+
+            expect(onSuccess).not.toHaveBeenCalled()
+            expect(engine.getProgressMap()).toEqual({ swipe: 0 })
             engine.destroy()
         })
     })

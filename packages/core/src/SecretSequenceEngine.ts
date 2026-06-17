@@ -288,6 +288,8 @@ export class SecretSequenceEngine {
     }
 
     private _onTouchStart(e: TouchEvent): void {
+        if (!this.enabled) return
+
         const touch = e.touches[0]
         if (!touch) return
 
@@ -299,6 +301,7 @@ export class SecretSequenceEngine {
     }
 
     private _onTouchEnd(e: TouchEvent): void {
+        if (!this.enabled) return
         if (!this.touchStart) return
 
         const touch = e.changedTouches[0]
