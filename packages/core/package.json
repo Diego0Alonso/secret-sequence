@@ -19,7 +19,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diego0alonso/secret-sequence.git"
+    "url": "git+https://github.com/Diego0Alonso/secret-sequence.git",
+    "directory": "packages/core"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
