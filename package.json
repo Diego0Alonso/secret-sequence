@@ -7,11 +7,17 @@
         "build:core": "pnpm --filter secret-sequence-core build",
         "build:react": "pnpm --filter secret-sequence-react build",
         "test": "pnpm -r test",
+        "lint": "eslint . --max-warnings 0",
         "changeset": "changeset",
         "version": "changeset version",
         "release": "pnpm run build && changeset publish"
     },
     "devDependencies": {
-        "@changesets/cli": "^2.29.8"
+        "@changesets/cli": "^2.29.8",
+        "@eslint/js": "^10.0.1",
+        "eslint": "^10.5.0",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "globals": "^17.6.0",
+        "typescript-eslint": "^8.61.1"
     }
 }

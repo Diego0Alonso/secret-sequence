@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, act } from "@testing-library/react"
 import React from "react"
-import { SecretSequence, type SecretSequenceProps } from "../SecretSequence"
+import { SecretSequence } from "../SecretSequence"
 import type { Direction } from "secret-sequence-core"
 
 // --- Helpers ---

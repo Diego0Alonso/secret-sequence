@@ -143,7 +143,6 @@ export function useSecretSequence(
         }
         // Solo re-crear el engine cuando cambian las opciones primitivas.
         // sequences y touchOptions se manejan por ref.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeout, enabled, enableTouch, ignoreInputs])
 
     // Sincronizar cambios en sequences sin destruir el engine
@@ -162,7 +161,6 @@ export function useSecretSequence(
 
         // Actualizar el mapa de progreso por si cambiaron los IDs
         setProgress(engineRef.current.getProgressMap())
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sequencesKey, touchOptionsKey])
 
     const reset = useCallback(() => {

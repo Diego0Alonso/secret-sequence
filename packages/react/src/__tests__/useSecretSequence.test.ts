@@ -153,7 +153,7 @@ describe("useSecretSequence", () => {
         const onSuccess = vi.fn()
         let enabled = false
 
-        const { result, rerender } = renderHook(() =>
+        const { rerender } = renderHook(() =>
             useSecretSequence({
                 sequences: [
                     { id: "test", sequence: ["up", "down"] as Direction[], onSuccess },
