@@ -1,10 +1,27 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import {
     SecretSequenceEngine,
     type SecretSequenceConfig,
     type SecretSequenceEngineOptions,
     type TouchConfig,
 } from "secret-sequence-core"
+
+/**
+ * Compara dos mapas de progreso por valor para evitar re-renders
+ * cuando el estado no cambió (p. ej. atajos de una sola tecla, que
+ * completan y resetean el progreso a 0 en la misma pulsación).
+ */
+function isSameProgress(
+    a: Record<string, number>,
+    b: Record<string, number>
+): boolean {
+    const aKeys = Object.keys(a)
+    if (aKeys.length !== Object.keys(b).length) return false
+    for (const key of aKeys) {
+        if (a[key] !== b[key]) return false
+    }
+    return true
+}
 
 /**
  * Opciones para el hook useSecretSequence.
@@ -111,22 +128,40 @@ export function useSecretSequence(
     )
     const touchOptionsKey = JSON.stringify(touchOptions)
 
+    // Secuencias con onSuccess ESTABLE: el engine las cachea, pero cada callback
+    // delega al valor actual vía ref. Así, cambiar solo el callback (sin tocar las
+    // teclas) sigue invocando el onSuccess fresco sin re-sincronizar el engine.
+    const stableSequences = useMemo<SecretSequenceConfig[]>(
+        () =>
+            sequencesRef.current.map((seq, i) => ({
+                ...seq,
+                onSuccess: () => sequencesRef.current[i]?.onSuccess(),
+            })),
+        // Se recrea solo cuando cambian teclas/id/orden/cantidad, no el callback.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [sequencesKey]
+    )
+    const stableSequencesRef = useRef(stableSequences)
+    stableSequencesRef.current = stableSequences
+
+    // Empuja el progreso al estado solo si cambió de valor (evita re-render por pulsación).
+    const syncProgress = useCallback(() => {
+        const engine = engineRef.current
+        if (!engine) return
+        const next = engine.getProgressMap()
+        setProgress(prev => (isSameProgress(prev, next) ? prev : next))
+    }, [])
+
     // Crear y destruir el engine con el ciclo de vida del componente
     useEffect(() => {
         const engineOptions: SecretSequenceEngineOptions = {
-            sequences: sequencesRef.current,
+            sequences: stableSequencesRef.current,
             timeout,
             enabled,
             enableTouch,
             ignoreInputs,
             touchOptions: touchOptionsRef.current,
-            onProgress: (_id, _step) => {
-                // Leer el progreso directamente del engine para tener
-                // el estado completo de todas las secuencias
-                if (engineRef.current) {
-                    setProgress(engineRef.current.getProgressMap())
-                }
-            },
+            onProgress: syncProgress,
         }
 
         const engine = new SecretSequenceEngine(engineOptions)
@@ -143,25 +178,21 @@ export function useSecretSequence(
         }
         // Solo re-crear el engine cuando cambian las opciones primitivas.
         // sequences y touchOptions se manejan por ref.
-    }, [timeout, enabled, enableTouch, ignoreInputs])
+    }, [timeout, enabled, enableTouch, ignoreInputs, syncProgress])
 
     // Sincronizar cambios en sequences sin destruir el engine
     useEffect(() => {
         if (!engineRef.current) return
 
         engineRef.current.setOptions({
-            sequences: sequencesRef.current,
+            sequences: stableSequencesRef.current,
             touchOptions: touchOptionsRef.current,
-            onProgress: () => {
-                if (engineRef.current) {
-                    setProgress(engineRef.current.getProgressMap())
-                }
-            },
+            onProgress: syncProgress,
         })
 
         // Actualizar el mapa de progreso por si cambiaron los IDs
         setProgress(engineRef.current.getProgressMap())
-    }, [sequencesKey, touchOptionsKey])
+    }, [sequencesKey, touchOptionsKey, syncProgress])
 
     const reset = useCallback(() => {
         if (engineRef.current) {
