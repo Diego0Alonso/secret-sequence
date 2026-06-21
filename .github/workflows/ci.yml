@@ -61,10 +61,9 @@ jobs:
           git fetch --quiet origin "$BASE_REF"
 
           pkg_changed=$(git diff --name-only "origin/$BASE_REF...HEAD" -- 'packages/**' | wc -l)
-          changesets_added=$(
-            git diff --name-only --diff-filter=A "origin/$BASE_REF...HEAD" -- '.changeset/*.md' \
-              | grep -v '.changeset/README.md' | wc -l
-          )
+          # Exclude the changesets README via a git pathspec (not grep): a grep
+          # over empty input exits 1 and would trip `set -o pipefail`.
+          changesets_added=$(git diff --name-only --diff-filter=A "origin/$BASE_REF...HEAD" -- '.changeset/*.md' ':(exclude).changeset/README.md' | wc -l)
 
           echo "packages/** files changed: $pkg_changed"
           echo "changeset files added:    $changesets_added"
