@@ -6,12 +6,22 @@ name: Release
 # Flow:
 #   1. Push to main with pending changesets -> changesets/action opens (or
 #      updates) a "Version Packages" PR that bumps versions + CHANGELOGs.
-#   2. Merge that PR -> this workflow runs again, finds no changesets, and
-#      runs `pnpm run release` (build + `changeset publish`) which publishes
-#      only the packages whose version is ahead of the registry, and tags them.
+#   2. Merge that PR -> no changesets remain, so the publish step runs
+#      `pnpm -r publish`, which publishes only the packages whose version is
+#      ahead of the registry.
+#
+# Why a separate publish step instead of changesets/action's `publish` input:
+# changesets/action injects a dummy NODE_AUTH_TOKEN so setup-node's .npmrc
+# stays valid. That fake token makes npm attempt token auth and SKIP OIDC
+# trusted publishing (which only engages when no token is configured),
+# producing an opaque "E404 undefined". Running `pnpm publish` in a clean
+# step (no NODE_AUTH_TOKEN) leaves the .npmrc token empty, so pnpm's OIDC
+# trusted publishing engages -- the same path the old per-package workflows
+# used successfully.
 on:
   push:
     branches: [main]
+  workflow_dispatch: # allow manual re-trigger (e.g. to retry a failed publish)
 
 # Never run two releases at once.
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -21,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # commit version bumps, push tags, create GitHub releases
+      contents: write # commit version bumps / open the Version Packages PR
       pull-requests: write # open/update the Version Packages PR
       id-token: write # OIDC Trusted Publishing + provenance attestations
 
@@ -37,8 +47,8 @@ jobs:
           cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
-      # pnpm publish delegates to the system `npm publish`, so OIDC Trusted
-      # Publishing needs a recent npm (>= 11.5.1) on the runner.
+      # pnpm publish can delegate to the system `npm`, so keep a recent npm
+      # (>= 11.5.1) available for OIDC Trusted Publishing.
       - name: Ensure recent npm
         run: npm install -g npm@latest
 
@@ -50,12 +60,18 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
-      - name: Create Release PR or publish
+      # Versioning only: opens/updates the "Version Packages" PR when there are
+      # pending changesets. Does NOT publish (see header comment).
+      - name: Create Release PR
+        id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm run version # `changeset version`
-          publish: pnpm run release # `pnpm run build && changeset publish`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Makes `npm publish` emit provenance without a --provenance flag.
-          NPM_CONFIG_PROVENANCE: "true"
+
+      # Publish only once the Version Packages PR has been merged (no changesets
+      # left on main). Clean step => empty .npmrc token => pnpm uses OIDC.
+      - name: Publish to npm (OIDC trusted publishing)
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: pnpm -r publish --no-git-checks --provenance --access public
