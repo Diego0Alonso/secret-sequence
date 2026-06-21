@@ -3,7 +3,9 @@ packages:
 
 # esbuild (used by tsup) ships its prebuilt native binary via the
 # @esbuild/<platform> optional dependency, so its postinstall build script is
-# not required and the build works without it (verified). pnpm 11 turns skipped
-# dependency build scripts into a hard error by default; relax that so install
-# succeeds in CI. esbuild is the only such dependency here.
+# not required and the build works without it (verified). Declare it explicitly
+# so pnpm does not keep writing an allowBuilds prompt placeholder.
+allowBuilds:
+  esbuild: false
+
 strictDepBuilds: false
