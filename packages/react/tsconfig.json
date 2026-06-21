@@ -2,7 +2,14 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "jsx": "react-jsx",
-        "outDir": "dist"
+        "outDir": "dist",
+        // Resolve the workspace dependency from source for type-checking so a
+        // fresh clone can run `pnpm typecheck` / `pnpm test` without building
+        // core first. tsup builds with core marked external, so this mapping
+        // only affects `tsc` type resolution, not the emitted bundle/types.
+        "paths": {
+            "secret-sequence-core": ["../core/src/index.ts"]
+        }
     },
     "include": [
         "src"
