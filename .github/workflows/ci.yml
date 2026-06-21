@@ -36,3 +36,40 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+
+  # Require a changeset on PRs that touch published packages, so every
+  # user-facing change carries its own version bump + changelog entry.
+  # Skipped for the bot-authored "Version Packages" PR, which consumes
+  # (deletes) changesets rather than adding them.
+  changeset:
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # need history to diff against the base branch
+
+      - name: Require a changeset when packages/** changes
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin "$BASE_REF"
+
+          pkg_changed=$(git diff --name-only "origin/$BASE_REF...HEAD" -- 'packages/**' | wc -l)
+          changesets_added=$(
+            git diff --name-only --diff-filter=A "origin/$BASE_REF...HEAD" -- '.changeset/*.md' \
+              | grep -v '.changeset/README.md' | wc -l
+          )
+
+          echo "packages/** files changed: $pkg_changed"
+          echo "changeset files added:    $changesets_added"
+
+          if [ "$pkg_changed" -gt 0 ] && [ "$changesets_added" -eq 0 ]; then
+            echo "::error::This PR changes packages/** but adds no changeset. Run 'pnpm changeset' to describe the release, or 'pnpm changeset --empty' to intentionally skip one."
+            exit 1
+          fi

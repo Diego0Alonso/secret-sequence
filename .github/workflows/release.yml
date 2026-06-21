@@ -1,0 +1,61 @@
+name: Release
+
+# Single source of truth for releases (replaces the manual tag-based
+# publish-core/publish-react workflows).
+#
+# Flow:
+#   1. Push to main with pending changesets -> changesets/action opens (or
+#      updates) a "Version Packages" PR that bumps versions + CHANGELOGs.
+#   2. Merge that PR -> this workflow runs again, finds no changesets, and
+#      runs `pnpm run release` (build + `changeset publish`) which publishes
+#      only the packages whose version is ahead of the registry, and tags them.
+on:
+  push:
+    branches: [main]
+
+# Never run two releases at once.
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # commit version bumps, push tags, create GitHub releases
+      pull-requests: write # open/update the Version Packages PR
+      id-token: write # OIDC Trusted Publishing + provenance attestations
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # pnpm version comes from the "packageManager" field in package.json
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      # pnpm publish delegates to the system `npm publish`, so OIDC Trusted
+      # Publishing needs a recent npm (>= 11.5.1) on the runner.
+      - name: Ensure recent npm
+        run: npm install -g npm@latest
+
+      - run: pnpm install --frozen-lockfile
+
+      # Gate: the whole monorepo must be green before a release PR or a publish.
+      - run: pnpm lint
+      - run: pnpm run build
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm run version # `changeset version`
+          publish: pnpm run release # `pnpm run build && changeset publish`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Makes `npm publish` emit provenance without a --provenance flag.
+          NPM_CONFIG_PROVENANCE: "true"
