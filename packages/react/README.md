@@ -193,6 +193,7 @@ Declarative JSX wrapper over the `useSecretSequence` hook.
 | `enableTouch`  | `boolean`                | `true`  | Enable swipe gesture detection                         |
 | `ignoreInputs` | `boolean`                | `true`  | Ignore key events when focus is on input-like elements |
 | `touchOptions` | `TouchConfig`            | —       | Advanced touch configuration                           |
+| `target`       | `EventTarget`            | `window` | Element to attach listeners to (e.g. a scoped container) |
 
 ---
 
