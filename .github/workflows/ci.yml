@@ -37,6 +37,55 @@ jobs:
 
       - run: pnpm test
 
+  # Both packages declare engines.node ">=18", but the dev toolchain (pnpm 11.5
+  # needs Node >= 22.13) cannot install on older majors. So build on 22 and
+  # smoke-test the BUILT core engine (zero runtime deps) on each supported major
+  # to actually back the engines claim.
+  smoke-core:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      # Build with the toolchain's required Node (22).
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter secret-sequence-core build
+
+      # Switch to the target major and run the built artifacts there.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Smoke-test built core (ESM + CJS) on Node ${{ matrix.node }}
+        run: |
+          node --input-type=module -e "
+            import { SecretSequenceEngine, detectSwipe } from './packages/core/dist/index.mjs'
+            new SecretSequenceEngine({ sequences: [{ sequence: ['up'], onSuccess() {} }] })
+            if (detectSwipe({ x: 0, y: 0, time: 0 }, { x: 100, y: 0, time: 100 }) !== 'right') throw new Error('ESM detectSwipe failed')
+            console.log('ESM core smoke OK on ' + process.version)
+          "
+          node -e "
+            const { SecretSequenceEngine, detectSwipe } = require('./packages/core/dist/index.js')
+            new SecretSequenceEngine({ sequences: [{ sequence: ['up'], onSuccess() {} }] })
+            if (detectSwipe({ x: 0, y: 0, time: 0 }, { x: 100, y: 0, time: 100 }) !== 'right') throw new Error('CJS detectSwipe failed')
+            console.log('CJS core smoke OK on ' + process.version)
+          "
+
   # Require a changeset on PRs that touch published packages, so every
   # user-facing change carries its own version bump + changelog entry.
   # Skipped for the bot-authored "Version Packages" PR, which consumes
