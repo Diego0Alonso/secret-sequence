@@ -40,6 +40,8 @@ export interface UseSecretSequenceOptions {
     ignoreInputs?: boolean
     /** Configuración de sensibilidad para gestos táctiles */
     touchOptions?: TouchConfig
+    /** Elemento al que adjuntar los listeners. Default: `window` */
+    target?: EventTarget
 }
 
 /**
@@ -109,6 +111,7 @@ export function useSecretSequence(
         enableTouch = true,
         ignoreInputs = true,
         touchOptions,
+        target,
     } = options
 
     const [progress, setProgress] = useState<Record<string, number>>({})
@@ -161,6 +164,7 @@ export function useSecretSequence(
             enableTouch,
             ignoreInputs,
             touchOptions: touchOptionsRef.current,
+            target,
             onProgress: syncProgress,
         }
 
@@ -176,9 +180,10 @@ export function useSecretSequence(
             engine.destroy()
             engineRef.current = null
         }
-        // Solo re-crear el engine cuando cambian las opciones primitivas.
+        // Solo re-crear el engine cuando cambian las opciones primitivas
+        // (incluido el target, para re-enganchar los listeners al nuevo elemento).
         // sequences y touchOptions se manejan por ref.
-    }, [timeout, enabled, enableTouch, ignoreInputs, syncProgress])
+    }, [timeout, enabled, enableTouch, ignoreInputs, target, syncProgress])
 
     // Sincronizar cambios en sequences sin destruir el engine
     useEffect(() => {
