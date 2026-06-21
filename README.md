@@ -147,7 +147,7 @@ function App() {
 
 * [ ] Smart partial matching (KMP algorithm)
 * [x] Advanced touch gesture support
-* [ ] Custom event targets
+* [x] Custom event targets
 * [ ] Devtools debug mode
 * [x] React wrapper package (`secret-sequence-react`)
 

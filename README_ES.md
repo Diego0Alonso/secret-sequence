@@ -147,7 +147,7 @@ function App() {
 
 * [ ] Coincidencia parcial inteligente (algoritmo KMP)
 * [x] Soporte avanzado de gestos táctiles
-* [ ] Targets de eventos personalizados
+* [x] Targets de eventos personalizados
 * [ ] Modo de depuración con devtools
 * [x] Paquete wrapper para React (`secret-sequence-react`)
 
